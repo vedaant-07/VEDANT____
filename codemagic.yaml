@@ -1,0 +1,34 @@
+workflows:
+  android-test-apk:
+    name: SE7EN FIT Android Test APK
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      node: 22.16.0
+      vars:
+        EXPO_NO_TELEMETRY: "1"
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd expo
+          npm ci --legacy-peer-deps
+      - name: Ensure Android project exists
+        script: |
+          cd expo
+          if [ ! -d android ]; then
+            CI=1 npx expo prebuild --platform android --no-install
+          fi
+      - name: Force ARM64 Android ABI
+        script: |
+          cd expo
+          if [ -f android/gradle.properties ]; then
+            sed -i.bak "s/^reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/" android/gradle.properties
+          fi
+      - name: Build debug APK
+        script: |
+          cd expo/android
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon
+    artifacts:
+      - expo/android/app/build/outputs/**/*.apk
+      - expo/android/app/build/outputs/**/mapping.txt

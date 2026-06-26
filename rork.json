@@ -1,0 +1,15 @@
+{
+  "$schema": "https://rork.com/schema/rork.json",
+  "apps": [
+    {
+      "name": "SE7EN FIT",
+      "path": "expo",
+      "framework": "react-native"
+    },
+    {
+      "name": "SE7EN FIT iOS",
+      "path": "ios",
+      "framework": "swift"
+    }
+  ]
+}
