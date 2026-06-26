@@ -1,33 +1,37 @@
 workflows:
   android-test-apk:
-    name: SE7EN FIT Android Test APK
+    name: SE7EN FIT Standalone Test APK
     max_build_duration: 60
     environment:
-      node: 22.16.0
+      node: 20
+      java: 17
       vars:
         EXPO_NO_TELEMETRY: "1"
     scripts:
       - name: Install dependencies
         script: |
           cd expo
-          npm ci --legacy-peer-deps
-      - name: Ensure Android project exists
+          node --version
+          npm --version
+          npm install -g npm@10.9.2
+          npm cache clean --force
+          npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Generate clean Android project
         script: |
           cd expo
-          if [ ! -d android ]; then
-            CI=1 npx expo prebuild --platform android --no-install
-          fi
+          CI=1 npx expo prebuild --platform android --no-install --clean
       - name: Force ARM64 Android ABI
         script: |
           cd expo
           if [ -f android/gradle.properties ]; then
-            sed -i.bak "s/^reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/" android/gradle.properties
+            sed -i.bak "s/^reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/" android/gradle.properties || true
+            grep -q '^reactNativeArchitectures=' android/gradle.properties || echo 'reactNativeArchitectures=arm64-v8a' >> android/gradle.properties
           fi
-      - name: Build debug APK
+      - name: Build standalone APK
         script: |
           cd expo/android
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --no-daemon
+          ./gradlew :app:assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a --stacktrace
     artifacts:
-      - expo/android/app/build/outputs/**/*.apk
+      - expo/android/app/build/outputs/apk/release/*.apk
       - expo/android/app/build/outputs/**/mapping.txt
