@@ -8,20 +8,21 @@ workflows:
       vars:
         EXPO_NO_TELEMETRY: "1"
         YARN_CACHE_FOLDER: "$CM_BUILD_DIR/.yarn-cache"
+        COREPACK_ENABLE_PROJECT_SPEC: "0"
     scripts:
-      - name: Install dependencies with Yarn
+      - name: Install dependencies with Yarn Classic
         script: |
           cd expo
           node --version
           corepack enable
           corepack prepare yarn@1.22.22 --activate
-          yarn --version
-          rm -rf node_modules package-lock.json
-          yarn install --ignore-engines --network-timeout 600000 --non-interactive
+          corepack yarn@1.22.22 --version
+          rm -rf node_modules package-lock.json yarn.lock .yarn .pnp.*
+          corepack yarn@1.22.22 install --ignore-engines --network-timeout 600000 --non-interactive
       - name: Generate clean Android project
         script: |
           cd expo
-          CI=1 yarn expo prebuild --platform android --no-install --clean
+          CI=1 ./node_modules/.bin/expo prebuild --platform android --no-install --clean
       - name: Force ARM64 Android ABI
         script: |
           cd expo
