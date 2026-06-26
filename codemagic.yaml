@@ -7,19 +7,21 @@ workflows:
       java: 17
       vars:
         EXPO_NO_TELEMETRY: "1"
+        YARN_CACHE_FOLDER: "$CM_BUILD_DIR/.yarn-cache"
     scripts:
-      - name: Install dependencies
+      - name: Install dependencies with Yarn
         script: |
           cd expo
           node --version
-          npm --version
-          npm install -g npm@10.9.2
-          npm cache clean --force
-          npm install --legacy-peer-deps --no-audit --no-fund
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+          yarn --version
+          rm -rf node_modules package-lock.json
+          yarn install --ignore-engines --network-timeout 600000 --non-interactive
       - name: Generate clean Android project
         script: |
           cd expo
-          CI=1 npx expo prebuild --platform android --no-install --clean
+          CI=1 yarn expo prebuild --platform android --no-install --clean
       - name: Force ARM64 Android ABI
         script: |
           cd expo
